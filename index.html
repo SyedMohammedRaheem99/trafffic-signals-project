@@ -113,9 +113,21 @@ header{display:flex;justify-content:space-between;align-items:center;padding:15p
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
 .status-text{font-size:0.75rem;color:var(--text-secondary)}
 .status-text span{color:var(--accent);font-weight:600}
-footer{text-align:center;padding:25px;margin-top:25px;border-top:1px solid var(--border)}
-footer p{color:var(--text-secondary);font-size:0.75rem;margin:3px 0}
-footer .highlight{color:var(--accent);font-weight:500}
+footer{background:linear-gradient(135deg,var(--bg-card),var(--bg-secondary));text-align:center;padding:30px 20px;margin-top:30px;border-top:2px solid var(--accent);border-radius:16px 16px 0 0;position:relative;overflow:hidden}
+footer::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),var(--green),transparent);animation:shimmer 3s infinite}
+@keyframes shimmer{0%,100%{transform:translateX(-100%)}50%{transform:translateX(100%)}}
+footer .footer-content{max-width:800px;margin:0 auto}
+footer .project-title{font-size:1rem;font-weight:700;background:linear-gradient(90deg,var(--accent),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;margin-bottom:15px;display:flex;align-items:center;justify-content:center;gap:8px}
+footer .developer-info{display:flex;flex-direction:column;gap:8px;margin-top:15px}
+footer .info-card{background:var(--bg-primary);padding:10px 20px;border-radius:10px;border:1px solid var(--border);display:inline-block;margin:5px}
+footer .info-label{color:var(--text-secondary);font-size:0.7rem;text-transform:uppercase;letter-spacing:1px;margin-bottom:3px}
+footer .info-value{color:var(--accent);font-size:0.85rem;font-weight:600}
+footer .developer-name{font-size:1.1rem;color:var(--green);font-weight:700;text-shadow:0 0 10px var(--accent-glow)}
+footer .social-links{display:flex;gap:15px;justify-content:center;margin-top:15px;flex-wrap:wrap}
+footer .social-link{background:var(--bg-primary);width:40px;height:40px;border-radius:50%;display:flex;align-items:center;justify-content:center;border:1px solid var(--border);transition:all 0.3s;font-size:1.2rem;text-decoration:none}
+footer .social-link:hover{transform:translateY(-3px);border-color:var(--accent);box-shadow:0 5px 15px var(--accent-glow)}
+footer .copyright{color:var(--text-secondary);font-size:0.65rem;margin-top:20px;padding-top:15px;border-top:1px solid var(--border)}
+@media(max-width:600px){footer .info-card{display:block;margin:8px auto;max-width:300px}}
 .sound-btn{background:var(--bg-secondary);border:1px solid var(--border);width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:1rem;transition:all 0.3s}
 .sound-btn:hover{border-color:var(--accent)}
 .sound-btn.muted{opacity:0.5}
@@ -318,9 +330,41 @@ footer .highlight{color:var(--accent);font-weight:500}
 </div>
 
 <footer>
-<p class="highlight">🚦 Smart Traffic Signal Control System Using Google Maps Live Traffic</p>
-<p>Developed by: <span class="highlight">Sigma developer(Mohammed Raheem)</span></p>
-<p> <span class="highlight">College: Self-Taught University 🎓 | Department: Google + YouTube Engineering</span></p>
+<div class="footer-content">
+<div class="project-title">
+🚦 Smart Traffic Signal Control System Using Google Maps Live Traffic
+</div>
+
+<div class="developer-info">
+<div class="info-card">
+<div class="info-label">Developed By</div>
+<div class="developer-name">Mohammed Raheem</div>
+</div>
+
+<div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
+<div class="info-card">
+<div class="info-label">College</div>
+<div class="info-value">🎓 Self-Taught University</div>
+</div>
+
+<div class="info-card">
+<div class="info-label">Department</div>
+<div class="info-value">💻 Google + YouTube Engineering</div>
+</div>
+</div>
+</div>
+
+<div class="social-links">
+<a href="#" class="social-link" title="GitHub">💻</a>
+<a href="#" class="social-link" title="LinkedIn">💼</a>
+<a href="#" class="social-link" title="Email">📧</a>
+<a href="#" class="social-link" title="Portfolio">🌐</a>
+</div>
+
+<div class="copyright">
+© 2024 Smart Traffic System | Built with ❤️ by Sigma Developer
+</div>
+</div>
 </footer>
 
 <script>
