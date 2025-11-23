@@ -1,0 +1,1199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Smart Traffic Signal Control System</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+<style>
+:root{--bg-primary:#0a0a0f;--bg-secondary:#12121a;--bg-card:#1a1a2e;--border:#2a2a4a;--text-primary:#ffffff;--text-secondary:#888;--accent:#00d4ff;--accent-glow:rgba(0,212,255,0.4);--green:#00ff88;--yellow:#ffcc00;--red:#ff4757;--purple:#9b59b6}
+[data-theme="light"]{--bg-primary:#f0f2f5;--bg-secondary:#ffffff;--bg-card:#ffffff;--border:#e0e0e0;--text-primary:#1a1a2e;--text-secondary:#666;--accent:#0099cc;--accent-glow:rgba(0,153,204,0.3)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Inter',sans-serif;background:var(--bg-primary);min-height:100vh;color:var(--text-primary);transition:all 0.3s ease}
+.container{max-width:1500px;margin:0 auto;padding:15px}
+header{display:flex;justify-content:space-between;align-items:center;padding:15px 20px;background:var(--bg-card);border-radius:16px;border:1px solid var(--border);margin-bottom:20px;flex-wrap:wrap;gap:15px}
+.logo-section{display:flex;align-items:center;gap:12px}
+.logo{width:45px;height:45px;background:linear-gradient(135deg,var(--accent),var(--green));border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:1.4rem}
+.title-text h1{font-size:1.1rem;font-weight:700;background:linear-gradient(90deg,var(--accent),var(--green));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.title-text p{font-size:0.7rem;color:var(--text-secondary)}
+.header-controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.theme-btn{width:40px;height:40px;border-radius:50%;border:1px solid var(--border);background:var(--bg-secondary);cursor:pointer;font-size:1.1rem;transition:all 0.3s}
+.theme-btn:hover{transform:scale(1.1);border-color:var(--accent)}
+.time-display{background:var(--bg-secondary);padding:8px 15px;border-radius:10px;border:1px solid var(--border);font-size:0.8rem;display:flex;align-items:center;gap:8px}
+.time-display .clock{font-weight:600;color:var(--accent);font-family:monospace;font-size:0.95rem}
+.controls-bar{display:flex;gap:10px;margin-bottom:20px;flex-wrap:wrap;justify-content:center}
+.mode-toggle{display:flex;background:var(--bg-card);border-radius:25px;padding:4px;border:1px solid var(--border)}
+.mode-btn{padding:10px 20px;border:none;background:transparent;color:var(--text-secondary);font-family:'Inter',sans-serif;font-size:0.8rem;font-weight:500;cursor:pointer;border-radius:20px;transition:all 0.3s;display:flex;align-items:center;gap:6px}
+.mode-btn.active{background:linear-gradient(135deg,var(--accent),#0099cc);color:#fff;box-shadow:0 0 20px var(--accent-glow)}
+.ctrl-btn{padding:10px 20px;border:none;border-radius:20px;font-family:'Inter',sans-serif;font-size:0.8rem;font-weight:600;cursor:pointer;transition:all 0.3s;display:flex;align-items:center;gap:6px}
+.start-btn{background:linear-gradient(135deg,var(--green),#00cc6a);color:#0a0a0f}
+.start-btn:hover{box-shadow:0 0 25px rgba(0,255,136,0.5);transform:translateY(-2px)}
+.start-btn.running{background:linear-gradient(135deg,var(--red),#cc2936)}
+.emergency-btn{background:linear-gradient(135deg,#ff6b6b,var(--red));color:#fff}
+.emergency-btn:hover{box-shadow:0 0 25px rgba(255,71,87,0.5)}
+.emergency-btn.active{animation:emergency-pulse 0.5s infinite}
+@keyframes emergency-pulse{0%,100%{box-shadow:0 0 10px var(--red)}50%{box-shadow:0 0 30px var(--red)}}
+.night-btn{background:linear-gradient(135deg,#5c6bc0,#3f51b5);color:#fff}
+.pedestrian-btn{background:linear-gradient(135deg,var(--yellow),#ff9800);color:#0a0a0f}
+.main-grid{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+@media(max-width:1000px){.main-grid{grid-template-columns:1fr}}
+.panel{background:var(--bg-card);border-radius:16px;padding:20px;border:1px solid var(--border)}
+.panel-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;padding-bottom:15px;border-bottom:1px solid var(--border)}
+.panel-title{display:flex;align-items:center;gap:10px}
+.panel-icon{width:38px;height:38px;background:linear-gradient(135deg,var(--accent),rgba(0,212,255,0.2));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:1.1rem}
+.panel-title h2{font-size:0.95rem;font-weight:600;color:var(--accent)}
+.ai-badge{background:linear-gradient(135deg,var(--purple),#e74c3c);padding:4px 12px;border-radius:15px;font-size:0.65rem;font-weight:700;animation:glow 2s infinite;display:none}
+.ai-badge.show{display:inline-block}
+@keyframes glow{0%,100%{box-shadow:0 0 5px var(--purple)}50%{box-shadow:0 0 20px var(--purple)}}
+.signals-grid{display:grid;grid-template-columns:1fr 1fr;gap:15px}
+.signal-unit{background:linear-gradient(145deg,var(--bg-secondary),var(--bg-card));border-radius:14px;padding:15px;border:2px solid var(--border);text-align:center;transition:all 0.4s ease;position:relative;overflow:hidden}
+.signal-unit::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,transparent,var(--accent),transparent);opacity:0;transition:opacity 0.3s}
+.signal-unit.active{border-color:var(--green);box-shadow:0 0 30px rgba(0,255,136,0.3)}
+.signal-unit.active::before{opacity:1;background:linear-gradient(90deg,transparent,var(--green),transparent)}
+.signal-label{font-size:0.8rem;font-weight:600;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;justify-content:center;gap:6px}
+.signal-box{background:linear-gradient(180deg,#1a1a1a,#0d0d0d);border-radius:12px;padding:12px 10px;display:flex;flex-direction:column;align-items:center;gap:8px;border:3px solid #333;box-shadow:inset 0 2px 10px rgba(0,0,0,0.5),0 5px 20px rgba(0,0,0,0.3);margin-bottom:12px;position:relative}
+.signal-box::before{content:'';position:absolute;top:5px;left:50%;transform:translateX(-50%);width:60%;height:5px;background:linear-gradient(90deg,transparent,rgba(255,255,255,0.1),transparent);border-radius:50%}
+.light{width:36px;height:36px;border-radius:50%;transition:all 0.4s ease;position:relative;border:3px solid #222}
+.light::before{content:'';position:absolute;top:3px;left:3px;width:12px;height:12px;background:radial-gradient(circle,rgba(255,255,255,0.4),transparent);border-radius:50%}
+.light.red{background:radial-gradient(circle at 30% 30%,#660000,#330000);box-shadow:inset 0 0 10px #000}
+.light.yellow{background:radial-gradient(circle at 30% 30%,#665500,#332200);box-shadow:inset 0 0 10px #000}
+.light.green{background:radial-gradient(circle at 30% 30%,#006600,#003300);box-shadow:inset 0 0 10px #000}
+.light.red.active{background:radial-gradient(circle at 30% 30%,#ff6666,#ff0000);box-shadow:0 0 20px #ff0000,0 0 40px #ff0000aa,0 0 60px #ff000066,inset 0 0 20px #ff6666}
+.light.yellow.active{background:radial-gradient(circle at 30% 30%,#ffee66,#ffcc00);box-shadow:0 0 20px #ffcc00,0 0 40px #ffcc00aa,0 0 60px #ffcc0066,inset 0 0 20px #ffee66}
+.light.green.active{background:radial-gradient(circle at 30% 30%,#66ff66,#00ff00);box-shadow:0 0 20px #00ff00,0 0 40px #00ff00aa,0 0 60px #00ff0066,inset 0 0 20px #66ff66}
+.light.blink{animation:blink-light 1s infinite}
+@keyframes blink-light{0%,50%{opacity:1}51%,100%{opacity:0.3}}
+.timer-display{font-size:1.6rem;font-weight:700;color:var(--text-primary);font-family:'Courier New',monospace;background:var(--bg-primary);padding:6px 18px;border-radius:8px;border:1px solid var(--border);min-width:65px;transition:all 0.3s}
+.timer-display.warning{color:var(--yellow);animation:pulse-warning 0.5s infinite}
+@keyframes pulse-warning{0%,100%{transform:scale(1)}50%{transform:scale(1.05)}}
+.traffic-select{width:100%;padding:8px;background:var(--bg-primary);border:1px solid var(--border);border-radius:8px;color:var(--text-primary);font-family:'Inter',sans-serif;font-size:0.75rem;cursor:pointer;margin-top:8px}
+.traffic-select:disabled{opacity:0.5;cursor:not-allowed}
+.density-bar{height:6px;background:var(--bg-primary);border-radius:3px;margin-top:10px;overflow:hidden}
+.density-fill{height:100%;border-radius:3px;transition:all 0.5s ease}
+.density-fill.light{width:30%;background:linear-gradient(90deg,var(--green),#00cc6a)}
+.density-fill.medium{width:60%;background:linear-gradient(90deg,var(--yellow),#ff9800)}
+.density-fill.heavy{width:100%;background:linear-gradient(90deg,var(--red),#cc2936)}
+.vehicle-count{font-size:0.7rem;color:var(--text-secondary);margin-top:6px;display:flex;align-items:center;justify-content:center;gap:4px}
+.pedestrian-section{background:var(--bg-secondary);border-radius:12px;padding:15px;margin-top:15px;border:1px solid var(--border)}
+.pedestrian-section h3{font-size:0.85rem;color:var(--text-primary);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.pedestrian-signals{display:flex;justify-content:center;gap:20px}
+.ped-signal{text-align:center}
+.ped-light{width:50px;height:50px;border-radius:10px;background:#1a1a1a;display:flex;align-items:center;justify-content:center;font-size:1.5rem;border:2px solid #333;margin-bottom:5px;transition:all 0.3s}
+.ped-light.stop{background:linear-gradient(145deg,#ff4444,#cc0000);box-shadow:0 0 15px rgba(255,0,0,0.5)}
+.ped-light.walk{background:linear-gradient(145deg,#44ff44,#00cc00);box-shadow:0 0 15px rgba(0,255,0,0.5)}
+.ped-light.walk .walk-icon{animation:walking 0.5s infinite}
+@keyframes walking{0%,100%{transform:translateX(-2px)}50%{transform:translateX(2px)}}
+.ped-timer{font-size:0.8rem;font-weight:600;color:var(--text-primary)}
+.map-container{height:300px;border-radius:12px;overflow:hidden;border:1px solid var(--border)}
+.map-container iframe{width:100%;height:100%;border:none}
+.map-legend{display:flex;gap:15px;margin-top:12px;justify-content:center;flex-wrap:wrap}
+.legend-item{display:flex;align-items:center;gap:5px;font-size:0.7rem;color:var(--text-secondary)}
+.legend-dot{width:10px;height:10px;border-radius:50%}
+.analytics-section{margin-top:20px}
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:15px}
+@media(max-width:600px){.stats-grid{grid-template-columns:repeat(2,1fr)}}
+.stat-card{background:var(--bg-secondary);border-radius:10px;padding:12px;text-align:center;border:1px solid var(--border)}
+.stat-value{font-size:1.4rem;font-weight:700;color:var(--accent)}
+.stat-label{font-size:0.65rem;color:var(--text-secondary);margin-top:2px}
+.chart-container{background:var(--bg-secondary);border-radius:12px;padding:15px;border:1px solid var(--border);height:180px}
+.prediction-box{background:linear-gradient(135deg,rgba(155,89,182,0.2),rgba(142,68,173,0.1));border:1px solid var(--purple);border-radius:12px;padding:15px;margin-top:15px;display:none}
+.prediction-box.show{display:block}
+.prediction-box h4{font-size:0.8rem;color:var(--purple);margin-bottom:8px;display:flex;align-items:center;gap:6px}
+.prediction-text{font-size:0.85rem;color:var(--text-primary)}
+.about-section{background:var(--bg-card);border-radius:16px;padding:20px;border:1px solid var(--border);margin-top:20px}
+.about-section h3{font-size:1rem;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.about-section p{font-size:0.8rem;color:var(--text-secondary);line-height:1.7;margin-bottom:10px}
+.features-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:15px}
+.feature-item{background:var(--bg-secondary);padding:10px 12px;border-radius:8px;font-size:0.75rem;color:var(--text-primary);display:flex;align-items:center;gap:8px;border:1px solid var(--border)}
+.status-bar{background:var(--bg-card);border-radius:12px;padding:12px 20px;border:1px solid var(--border);margin-top:20px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:15px}
+.status-item{display:flex;align-items:center;gap:8px}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--red)}
+.status-dot.running{background:var(--green);animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+.status-text{font-size:0.75rem;color:var(--text-secondary)}
+.status-text span{color:var(--accent);font-weight:600}
+footer{text-align:center;padding:25px;margin-top:25px;border-top:1px solid var(--border)}
+footer p{color:var(--text-secondary);font-size:0.75rem;margin:3px 0}
+footer .highlight{color:var(--accent);font-weight:500}
+.sound-btn{background:var(--bg-secondary);border:1px solid var(--border);width:40px;height:40px;border-radius:50%;cursor:pointer;font-size:1rem;transition:all 0.3s}
+.sound-btn:hover{border-color:var(--accent)}
+.sound-btn.muted{opacity:0.5}
+</style>
+</head>
+<body data-theme="dark">
+<div class="container">
+<header>
+<div class="logo-section">
+<div class="logo">🚦</div>
+<div class="title-text">
+<h1>Smart Traffic Signal Control System</h1>
+<p>Integrated with Google Maps Live Traffic</p>
+</div>
+</div>
+<div class="header-controls">
+<div class="time-display">
+<span id="timeIcon">🌙</span>
+<span class="clock" id="currentTime">00:00:00</span>
+<span id="trafficPeriod">Night</span>
+</div>
+<button class="sound-btn" id="soundBtn" onclick="toggleSound()" title="Toggle Sound">🔊</button>
+<button class="theme-btn" id="themeBtn" onclick="toggleTheme()" title="Toggle Theme">🌙</button>
+</div>
+</header>
+
+<div class="controls-bar">
+<div class="mode-toggle">
+<button class="mode-btn active" id="manualBtn" onclick="setMode('manual')">📋 Manual</button>
+<button class="mode-btn" id="smartBtn" onclick="setMode('smart')">🤖 Smart AI</button>
+</div>
+<button class="ctrl-btn start-btn" id="startBtn" onclick="toggleSimulation()">▶ Start</button>
+<button class="ctrl-btn emergency-btn" id="emergencyBtn" onclick="toggleEmergency()">🚑 Emergency</button>
+<button class="ctrl-btn night-btn" id="nightBtn" onclick="toggleNightMode()">🌙 Night Mode</button>
+<button class="ctrl-btn pedestrian-btn" id="pedestrianBtn" onclick="triggerPedestrian()">🚶 Pedestrian</button>
+</div>
+
+<div class="main-grid">
+<div class="panel">
+<div class="panel-header">
+<div class="panel-title">
+<div class="panel-icon">🚦</div>
+<h2>Traffic Signal Controller</h2>
+</div>
+<span class="ai-badge" id="aiBadge">🤖 AI ACTIVE</span>
+</div>
+<div class="signals-grid">
+<div class="signal-unit" id="unit-north">
+<div class="signal-label">⬆️ NORTH</div>
+<div class="signal-box">
+<div class="light red active" id="north-red"></div>
+<div class="light yellow" id="north-yellow"></div>
+<div class="light green" id="north-green"></div>
+</div>
+<div class="timer-display" id="timer-north">00</div>
+<select class="traffic-select" id="select-north" onchange="updateTraffic('north')">
+<option value="light">🟢 Light Traffic</option>
+<option value="medium">🟡 Medium Traffic</option>
+<option value="heavy">🔴 Heavy Traffic</option>
+</select>
+<div class="density-bar"><div class="density-fill light" id="density-north"></div></div>
+<div class="vehicle-count">🚗 <span id="vehicles-north">12</span> vehicles</div>
+</div>
+<div class="signal-unit" id="unit-south">
+<div class="signal-label">⬇️ SOUTH</div>
+<div class="signal-box">
+<div class="light red active" id="south-red"></div>
+<div class="light yellow" id="south-yellow"></div>
+<div class="light green" id="south-green"></div>
+</div>
+<div class="timer-display" id="timer-south">00</div>
+<select class="traffic-select" id="select-south" onchange="updateTraffic('south')">
+<option value="light">🟢 Light Traffic</option>
+<option value="medium" selected>🟡 Medium Traffic</option>
+<option value="heavy">🔴 Heavy Traffic</option>
+</select>
+<div class="density-bar"><div class="density-fill medium" id="density-south"></div></div>
+<div class="vehicle-count">🚗 <span id="vehicles-south">28</span> vehicles</div>
+</div>
+<div class="signal-unit" id="unit-east">
+<div class="signal-label">➡️ EAST</div>
+<div class="signal-box">
+<div class="light red active" id="east-red"></div>
+<div class="light yellow" id="east-yellow"></div>
+<div class="light green" id="east-green"></div>
+</div>
+<div class="timer-display" id="timer-east">00</div>
+<select class="traffic-select" id="select-east" onchange="updateTraffic('east')">
+<option value="light">🟢 Light Traffic</option>
+<option value="medium">🟡 Medium Traffic</option>
+<option value="heavy" selected>🔴 Heavy Traffic</option>
+</select>
+<div class="density-bar"><div class="density-fill heavy" id="density-east"></div></div>
+<div class="vehicle-count">🚗 <span id="vehicles-east">45</span> vehicles</div>
+</div>
+<div class="signal-unit" id="unit-west">
+<div class="signal-label">⬅️ WEST</div>
+<div class="signal-box">
+<div class="light red active" id="west-red"></div>
+<div class="light yellow" id="west-yellow"></div>
+<div class="light green" id="west-green"></div>
+</div>
+<div class="timer-display" id="timer-west">00</div>
+<select class="traffic-select" id="select-west" onchange="updateTraffic('west')">
+<option value="light" selected>🟢 Light Traffic</option>
+<option value="medium">🟡 Medium Traffic</option>
+<option value="heavy">🔴 Heavy Traffic</option>
+</select>
+<div class="density-bar"><div class="density-fill light" id="density-west"></div></div>
+<div class="vehicle-count">🚗 <span id="vehicles-west">15</span> vehicles</div>
+</div>
+</div>
+<div class="pedestrian-section">
+<h3>🚶 Pedestrian Crossing</h3>
+<div class="pedestrian-signals">
+<div class="ped-signal">
+<div class="ped-light stop" id="ped-light">
+<span id="ped-icon">🖐️</span>
+</div>
+<div class="ped-timer" id="ped-timer">WAIT</div>
+</div>
+</div>
+</div>
+<div class="prediction-box" id="predictionBox">
+<h4>🔮 AI Prediction</h4>
+<p class="prediction-text" id="predictionText">Analyzing traffic patterns...</p>
+</div>
+</div>
+
+<div class="panel">
+<div class="panel-header">
+<div class="panel-title">
+<div class="panel-icon">🗺️</div>
+<h2>Google Maps Live Traffic</h2>
+</div>
+</div>
+<div class="map-container">
+<iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3887.7851959498887!2d77.60703731534567!3d12.983390990843463!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x3bae167799089249%3A0x8e8c40b8e8c8c8c8!2sCommercial%20Street%2C%20Tasker%20Town%2C%20Shivaji%20Nagar%2C%20Bengaluru%2C%20Karnataka!5e0!3m2!1sen!2sin!4v1699900000000!5m2!1sen!2sin&layer=traffic" allowfullscreen loading="lazy"></iframe>
+</div>
+<div class="map-legend">
+<div class="legend-item"><div class="legend-dot" style="background:var(--green)"></div> Light Traffic</div>
+<div class="legend-item"><div class="legend-dot" style="background:var(--yellow)"></div> Moderate</div>
+<div class="legend-item"><div class="legend-dot" style="background:var(--red)"></div> Heavy Traffic</div>
+</div>
+<div class="analytics-section">
+<div class="stats-grid">
+<div class="stat-card">
+<div class="stat-value" id="totalCycles">0</div>
+<div class="stat-label">Total Cycles</div>
+</div>
+<div class="stat-card">
+<div class="stat-value" id="avgGreen">0s</div>
+<div class="stat-label">Avg Green Time</div>
+</div>
+<div class="stat-card">
+<div class="stat-value" id="efficiency">0%</div>
+<div class="stat-label">AI Efficiency</div>
+</div>
+<div class="stat-card">
+<div class="stat-value" id="totalVehicles">0</div>
+<div class="stat-label">Vehicles/Min</div>
+</div>
+</div>
+<div class="chart-container">
+<canvas id="trafficChart"></canvas>
+</div>
+</div>
+</div>
+</div>
+
+<div class="about-section">
+<h3>ℹ️ About Smart Traffic Signal System</h3>
+<p>This Smart Traffic Signal Control System uses AI-powered algorithms to optimize traffic flow in real-time. By analyzing live traffic data from Google Maps and simulating vehicle density, the system automatically adjusts signal timing to reduce congestion and improve road efficiency.</p>
+<p>The system supports multiple modes including Manual Control, Smart AI Mode, Emergency Vehicle Priority, and Night Mode with energy-saving blinking signals.</p>
+<div class="features-list">
+<div class="feature-item">🤖 AI-Powered Signal Optimization</div>
+<div class="feature-item">🗺️ Google Maps Live Traffic Integration</div>
+<div class="feature-item">🚑 Emergency Vehicle Priority Mode</div>
+<div class="feature-item">🌙 Night Mode with Blinking Signals</div>
+<div class="feature-item">🚶 Pedestrian Crossing System</div>
+<div class="feature-item">📊 Real-time Analytics Dashboard</div>
+</div>
+</div>
+
+<div class="status-bar">
+<div class="status-item">
+<div class="status-dot" id="statusDot"></div>
+<div class="status-text">System: <span id="systemStatus">Stopped</span></div>
+</div>
+<div class="status-item">
+<div class="status-text">Active Lane: <span id="currentLane">--</span></div>
+</div>
+<div class="status-item">
+<div class="status-text">Mode: <span id="currentModeDisplay">Manual</span></div>
+</div>
+<div class="status-item">
+<div class="status-text">Traffic Period: <span id="periodDisplay">--</span></div>
+</div>
+</div>
+</div>
+
+<footer>
+<p class="highlight">🚦 Smart Traffic Signal Control System Using Google Maps Live Traffic</p>
+<p>Developed by: <span class="highlight">Sigma Developer <footer>
+<p class="highlight">🚦 Smart Traffic Signal Control System Using Google Maps Live Traffic</p>
+<p>Developed by: <span class="highlight">Sigma Developer</span></p>
+<p>College: Self-Taught University 🎓 | Department: Google + YouTube Engineering</p>
+</footer>
+
+<script>
+// ================================
+// GLOBAL VARIABLES & CONFIGURATION
+// ================================
+
+// System State
+let isRunning = false;              // Track if simulation is active
+let currentMode = 'manual';          // 'manual' or 'smart'
+let isEmergencyMode = false;         // Emergency vehicle priority mode
+let isNightMode = false;             // Night mode with blinking signals
+let isPedestrianActive = false;      // Pedestrian crossing active state
+let soundEnabled = true;             // Sound effects toggle
+
+// Signal Timing Configuration
+const YELLOW_DURATION = 3;           // Yellow light duration (seconds)
+const PEDESTRIAN_DURATION = 15;      // Pedestrian crossing time (seconds)
+
+// Manual Mode Timings (seconds)
+const MANUAL_TIMINGS = {
+    light: 15,                       // Light traffic green time
+    medium: 25,                      // Medium traffic green time
+    heavy: 40                        // Heavy traffic green time
+};
+
+// Traffic Data for Each Direction
+let trafficData = {
+    north: { density: 'light', vehicles: 12, timer: 0 },
+    south: { density: 'medium', vehicles: 28, timer: 0 },
+    east: { density: 'heavy', vehicles: 45, timer: 0 },
+    west: { density: 'light', vehicles: 15, timer: 0 }
+};
+
+// Current Active Lane
+let activeLane = 'north';            // Which lane currently has green light
+let laneSequence = ['north', 'south', 'east', 'west']; // Rotation order
+let currentLaneIndex = 0;            // Current position in sequence
+
+// Analytics Data
+let totalCycles = 0;                 // Total number of complete cycles
+let totalGreenTime = 0;              // Sum of all green times
+let cycleCount = 0;                  // Cycles counted for average
+let vehiclesProcessed = 0;           // Total vehicles that passed
+let chartData = {                    // Data for Chart.js
+    labels: [],
+    north: [],
+    south: [],
+    east: [],
+    west: []
+};
+
+// Timers
+let mainInterval = null;             // Main simulation loop
+let currentTimer = 0;                // Current countdown value
+let currentPhase = 'red';            // 'green', 'yellow', 'red'
+
+// ================================
+// INITIALIZATION
+// ================================
+
+// Initialize the system when page loads
+document.addEventListener('DOMContentLoaded', function() {
+    initializeClock();
+    initializeChart();
+    updateTrafficPeriod();
+    disableTrafficSelectors();
+    
+    // Update clock and traffic every second
+    setInterval(updateClock, 1000);
+    setInterval(updateTrafficPeriod, 60000); // Every minute
+});
+
+// ================================
+// THEME & UI CONTROLS
+// ================================
+
+/**
+ * Toggle between Dark and Light themes
+ */
+function toggleTheme() {
+    const body = document.body;
+    const themeBtn = document.getElementById('themeBtn');
+    const currentTheme = body.getAttribute('data-theme');
+    
+    if (currentTheme === 'dark') {
+        body.setAttribute('data-theme', 'light');
+        themeBtn.textContent = '☀️';
+    } else {
+        body.setAttribute('data-theme', 'dark');
+        themeBtn.textContent = '🌙';
+    }
+}
+
+/**
+ * Toggle sound effects on/off
+ */
+function toggleSound() {
+    soundEnabled = !soundEnabled;
+    const soundBtn = document.getElementById('soundBtn');
+    soundBtn.textContent = soundEnabled ? '🔊' : '🔇';
+    soundBtn.classList.toggle('muted', !soundEnabled);
+}
+
+// ================================
+// CLOCK & TIME-BASED FEATURES
+// ================================
+
+/**
+ * Initialize and display current time
+ */
+function initializeClock() {
+    updateClock();
+}
+
+/**
+ * Update the clock display every second
+ */
+function updateClock() {
+    const now = new Date();
+    const hours = String(now.getHours()).padStart(2, '0');
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const seconds = String(now.getSeconds()).padStart(2, '0');
+    
+    document.getElementById('currentTime').textContent = `${hours}:${minutes}:${seconds}`;
+}
+
+/**
+ * Determine traffic period based on current time
+ * Morning (6-10): Heavy | Afternoon (10-17): Medium
+ * Evening (17-21): Heavy | Night (21-6): Light
+ */
+function updateTrafficPeriod() {
+    const hour = new Date().getHours();
+    let period, icon;
+    
+    if (hour >= 6 && hour < 10) {
+        period = 'Morning Rush';
+        icon = '🌅';
+    } else if (hour >= 10 && hour < 17) {
+        period = 'Afternoon';
+        icon = '☀️';
+    } else if (hour >= 17 && hour < 21) {
+        period = 'Evening Rush';
+        icon = '🌆';
+    } else {
+        period = 'Night';
+        icon = '🌙';
+        // Auto-enable night mode blinking after 9 PM
+        if (hour >= 21 || hour < 6) {
+            if (!isNightMode && !isRunning) {
+                // Suggest night mode but don't force it
+            }
+        }
+    }
+    
+    document.getElementById('timeIcon').textContent = icon;
+    document.getElementById('trafficPeriod').textContent = period;
+    document.getElementById('periodDisplay').textContent = period;
+}
+
+/**
+ * Get traffic level based on current time
+ * Returns: 'heavy', 'medium', or 'light'
+ */
+function getTimeBasedTraffic() {
+    const hour = new Date().getHours();
+    
+    // Morning rush (6 AM - 10 AM): Heavy
+    if (hour >= 6 && hour < 10) return 'heavy';
+    
+    // Evening rush (5 PM - 9 PM): Heavy
+    if (hour >= 17 && hour < 21) return 'heavy';
+    
+    // Afternoon (10 AM - 5 PM): Medium
+    if (hour >= 10 && hour < 17) return 'medium';
+    
+    // Night (9 PM - 6 AM): Light
+    return 'light';
+}
+
+// ================================
+// MODE SWITCHING
+// ================================
+
+/**
+ * Switch between Manual and Smart AI modes
+ * @param {string} mode - 'manual' or 'smart'
+ */
+function setMode(mode) {
+    currentMode = mode;
+    
+    // Update UI buttons
+    document.getElementById('manualBtn').classList.toggle('active', mode === 'manual');
+    document.getElementById('smartBtn').classList.toggle('active', mode === 'smart');
+    document.getElementById('aiBadge').classList.toggle('show', mode === 'smart');
+    document.getElementById('currentModeDisplay').textContent = mode === 'smart' ? 'Smart AI' : 'Manual';
+    
+    // Enable/disable traffic selectors based on mode
+    const selectors = document.querySelectorAll('.traffic-select');
+    selectors.forEach(selector => {
+        selector.disabled = (mode === 'smart');
+    });
+    
+    // Show prediction box in AI mode
+    if (mode === 'smart') {
+        document.getElementById('predictionBox').classList.add('show');
+        updateAIPrediction();
+    } else {
+        document.getElementById('predictionBox').classList.remove('show');
+    }
+}
+
+// ================================
+// SIMULATION CONTROL
+// ================================
+
+/**
+ * Start or stop the traffic simulation
+ */
+function toggleSimulation() {
+    const startBtn = document.getElementById('startBtn');
+    const statusDot = document.getElementById('statusDot');
+    const systemStatus = document.getElementById('systemStatus');
+    
+    if (!isRunning) {
+        // Start simulation
+        isRunning = true;
+        startBtn.textContent = '⏸ Stop';
+        startBtn.classList.add('running');
+        statusDot.classList.add('running');
+        systemStatus.textContent = 'Running';
+        
+        // Disable night mode and emergency if active
+        if (isNightMode) toggleNightMode();
+        if (isEmergencyMode) toggleEmergency();
+        
+        // Enable traffic selectors in manual mode
+        if (currentMode === 'manual') {
+            enableTrafficSelectors();
+        }
+        
+        // Start the first cycle
+        startCycle();
+        
+    } else {
+        // Stop simulation
+        stopSimulation();
+    }
+}
+
+/**
+ * Stop the simulation and reset states
+ */
+function stopSimulation() {
+    isRunning = false;
+    const startBtn = document.getElementById('startBtn');
+    const statusDot = document.getElementById('statusDot');
+    const systemStatus = document.getElementById('systemStatus');
+    
+    startBtn.textContent = '▶ Start';
+    startBtn.classList.remove('running');
+    statusDot.classList.remove('running');
+    systemStatus.textContent = 'Stopped';
+    
+    // Clear interval
+    if (mainInterval) {
+        clearInterval(mainInterval);
+        mainInterval = null;
+    }
+    
+    // Reset all signals to red
+    resetAllSignals();
+    disableTrafficSelectors();
+    document.getElementById('currentLane').textContent = '--';
+}
+
+/**
+ * Start a new traffic cycle
+ */
+function startCycle() {
+    // Get the current lane to give green light
+    activeLane = laneSequence[currentLaneIndex];
+    
+    // Calculate green time based on mode and traffic
+    let greenTime;
+    if (currentMode === 'smart') {
+        greenTime = calculateSmartGreenTime(activeLane);
+    } else {
+        const density = trafficData[activeLane].density;
+        greenTime = MANUAL_TIMINGS[density];
+    }
+    
+    // Update analytics
+    totalGreenTime += greenTime;
+    cycleCount++;
+    
+    // Start green phase
+    currentPhase = 'green';
+    currentTimer = greenTime;
+    setSignalState(activeLane, 'green');
+    updateTimerDisplay(activeLane, currentTimer);
+    
+    // Highlight active lane
+    highlightActiveLane(activeLane);
+    document.getElementById('currentLane').textContent = activeLane.toUpperCase();
+    
+    // Start countdown timer
+    mainInterval = setInterval(updateCycle, 1000);
+}
+
+/**
+ * Update the current cycle every second
+ */
+function updateCycle() {
+    if (!isRunning) return;
+    
+    currentTimer--;
+    updateTimerDisplay(activeLane, currentTimer);
+    
+    // Apply warning animation when timer is low
+    const timerElement = document.getElementById(`timer-${activeLane}`);
+    if (currentTimer <= 5 && currentPhase === 'green') {
+        timerElement.classList.add('warning');
+    } else {
+        timerElement.classList.remove('warning');
+    }
+    
+    // Phase transitions
+    if (currentTimer <= 0) {
+        if (currentPhase === 'green') {
+            // Transition to yellow
+            currentPhase = 'yellow';
+            currentTimer = YELLOW_DURATION;
+            setSignalState(activeLane, 'yellow');
+            playSound('beep');
+            
+        } else if (currentPhase === 'yellow') {
+            // Transition to red, move to next lane
+            currentPhase = 'red';
+            setSignalState(activeLane, 'red');
+            updateTimerDisplay(activeLane, 0);
+            removeHighlight(activeLane);
+            
+            // Process vehicles (analytics)
+            processVehicles(activeLane);
+            
+            // Move to next lane
+            currentLaneIndex = (currentLaneIndex + 1) % laneSequence.length;
+            
+            // Complete cycle tracking
+            if (currentLaneIndex === 0) {
+                totalCycles++;
+                document.getElementById('totalCycles').textContent = totalCycles;
+                updateChart();
+            }
+            
+            // Update efficiency display
+            updateEfficiency();
+            
+            // Update AI prediction
+            if (currentMode === 'smart') {
+                updateAIPrediction();
+            }
+            
+            // Clear interval and start next cycle
+            clearInterval(mainInterval);
+            setTimeout(startCycle, 1000); // 1 second buffer between cycles
+        }
+    }
+}
+
+// ================================
+// SIGNAL CONTROL FUNCTIONS
+// ================================
+
+/**
+ * Set signal light state for a specific lane
+ * @param {string} lane - Lane name (north, south, east, west)
+ * @param {string} state - Light state (red, yellow, green)
+ */
+function setSignalState(lane, state) {
+    const lights = ['red', 'yellow', 'green'];
+    
+    lights.forEach(light => {
+        const element = document.getElementById(`${lane}-${light}`);
+        if (light === state) {
+            element.classList.add('active');
+            if (state === 'yellow' && isNightMode) {
+                element.classList.add('blink');
+            }
+        } else {
+            element.classList.remove('active');
+            element.classList.remove('blink');
+        }
+    });
+}
+
+/**
+ * Reset all signals to red state
+ */
+function resetAllSignals() {
+    laneSequence.forEach(lane => {
+        setSignalState(lane, 'red');
+        updateTimerDisplay(lane, 0);
+        removeHighlight(lane);
+    });
+}
+
+/**
+ * Update timer display for a lane
+ * @param {string} lane - Lane name
+ * @param {number} time - Time in seconds
+ */
+function updateTimerDisplay(lane, time) {
+    const display = document.getElementById(`timer-${lane}`);
+    display.textContent = String(time).padStart(2, '0');
+}
+
+/**
+ * Highlight the active lane with border glow
+ * @param {string} lane - Lane name
+ */
+function highlightActiveLane(lane) {
+    const unit = document.getElementById(`unit-${lane}`);
+    unit.classList.add('active');
+}
+
+/**
+ * Remove highlight from a lane
+ * @param {string} lane - Lane name
+ */
+function removeHighlight(lane) {
+    const unit = document.getElementById(`unit-${lane}`);
+    unit.classList.remove('active');
+}
+
+// ================================
+// SMART AI MODE LOGIC
+// ================================
+
+/**
+ * Calculate green time based on traffic density and time of day
+ * @param {string} lane - Lane name
+ * @returns {number} Green time in seconds
+ */
+function calculateSmartGreenTime(lane) {
+    const timeBasedTraffic = getTimeBasedTraffic();
+    const currentDensity = trafficData[lane].density;
+    
+    // Base timing from time of day
+    let baseTime;
+    switch(timeBasedTraffic) {
+        case 'heavy': baseTime = 35; break;
+        case 'medium': baseTime = 25; break;
+        case 'light': baseTime = 15; break;
+        default: baseTime = 20;
+    }
+    
+    // Adjust based on lane-specific density
+    let multiplier;
+    switch(currentDensity) {
+        case 'heavy': multiplier = 1.3; break;
+        case 'medium': multiplier = 1.0; break;
+        case 'light': multiplier = 0.7; break;
+        default: multiplier = 1.0;
+    }
+    
+    // Calculate final time (with bounds)
+    let finalTime = Math.round(baseTime * multiplier);
+    finalTime = Math.max(10, Math.min(45, finalTime)); // Between 10-45 seconds
+    
+    return finalTime;
+}
+
+/**
+ * Update AI prediction display
+ */
+function updateAIPrediction() {
+    const nextLaneIndex = (currentLaneIndex + 1) % laneSequence.length;
+    const nextLane = laneSequence[nextLaneIndex];
+    const nextDensity = trafficData[nextLane].density;
+    const timeTraffic = getTimeBasedTraffic();
+    
+    const predictions = {
+        heavy: "🔴 High congestion detected. Extending green time for optimal flow.",
+        medium: "🟡 Moderate traffic. Balanced timing applied for efficiency.",
+        light: "🟢 Light traffic detected. Shorter cycle for energy efficiency."
+    };
+    
+    const prediction = `Next: ${nextLane.toUpperCase()} lane - ${predictions[nextDensity]}`;
+    document.getElementById('predictionText').textContent = prediction;
+}
+
+// ================================
+// TRAFFIC DENSITY MANAGEMENT
+// ================================
+
+/**
+ * Update traffic density for a specific lane (manual mode)
+ * @param {string} lane - Lane name
+ */
+function updateTraffic(lane) {
+    const select = document.getElementById(`select-${lane}`);
+    const density = select.value;
+    
+    trafficData[lane].density = density;
+    
+    // Update vehicle count based on density
+    const vehicleCounts = { light: [10, 20], medium: [25, 35], heavy: [40, 50] };
+    const range = vehicleCounts[density];
+    trafficData[lane].vehicles = Math.floor(Math.random() * (range[1] - range[0] + 1)) + range[0];
+    
+    // Update UI
+    updateDensityDisplay(lane);
+}
+
+/**
+ * Update visual density bar and vehicle count
+ * @param {string} lane - Lane name
+ */
+function updateDensityDisplay(lane) {
+    const density = trafficData[lane].density;
+    const densityBar = document.getElementById(`density-${lane}`);
+    const vehicleCount = document.getElementById(`vehicles-${lane}`);
+    
+    // Update density bar
+    densityBar.className = 'density-fill ' + density;
+    
+    // Update vehicle count
+    vehicleCount.textContent = trafficData[lane].vehicles;
+}
+
+/**
+ * Simulate vehicle processing (analytics)
+ * @param {string} lane - Lane name
+ */
+function processVehicles(lane) {
+    const processed = trafficData[lane].vehicles;
+    vehiclesProcessed += processed;
+    
+    // Reduce vehicles after processing (simulate clearing)
+    trafficData[lane].vehicles = Math.max(0, trafficData[lane].vehicles - Math.floor(processed * 0.7));
+    
+    // Add new random vehicles (simulate incoming traffic)
+    const incoming = Math.floor(Math.random() * 8) + 3;
+    trafficData[lane].vehicles += incoming;
+    
+    // Update display
+    updateDensityDisplay(lane);
+    
+    // Update total vehicles per minute
+    const vehiclesPerMin = Math.floor(vehiclesProcessed / (totalCycles + 1));
+    document.getElementById('totalVehicles').textContent = vehiclesPerMin;
+}
+
+/**
+ * Enable traffic density selectors
+ */
+function enableTrafficSelectors() {
+    const selectors = document.querySelectorAll('.traffic-select');
+    selectors.forEach(selector => selector.disabled = false);
+}
+
+/**
+ * Disable traffic density selectors
+ */
+function disableTrafficSelectors() {
+    const selectors = document.querySelectorAll('.traffic-select');
+    selectors.forEach(selector => selector.disabled = true);
+}
+
+// ================================
+// SPECIAL MODES
+// ================================
+
+/**
+ * Toggle Emergency Vehicle Priority Mode
+ * Forces North lane to stay green, all others red
+ */
+function toggleEmergency() {
+    const emergencyBtn = document.getElementById('emergencyBtn');
+    
+    if (!isEmergencyMode) {
+        // Activate emergency mode
+        isEmergencyMode = true;
+        emergencyBtn.classList.add('active');
+        
+        // Stop current simulation if running
+        if (isRunning) {
+            stopSimulation();
+        }
+        
+        // Set North lane to green, all others to red
+        resetAllSignals();
+        setSignalState('north', 'green');
+        highlightActiveLane('north');
+        document.getElementById('currentLane').textContent = 'NORTH (EMERGENCY)';
+        document.getElementById('systemStatus').textContent = 'Emergency Mode';
+        
+        // Play alert sound
+        playSound('alert');
+        
+    } else {
+        // Deactivate emergency mode
+        isEmergencyMode = false;
+        emergencyBtn.classList.remove('active');
+        resetAllSignals();
+        document.getElementById('currentLane').textContent = '--';
+        document.getElementById('systemStatus').textContent = 'Stopped';
+    }
+}
+
+/**
+ * Toggle Night Mode (Blinking Yellow Signals)
+ * All signals blink yellow to save energy
+ */
+function toggleNightMode() {
+    const nightBtn = document.getElementById('nightBtn');
+    
+    if (!isNightMode) {
+        // Activate night mode
+        isNightMode = true;
+        nightBtn.classList.add('active');
+        
+        // Stop simulation if running
+        if (isRunning) {
+            stopSimulation();
+        }
+        
+        // Set all signals to blinking yellow
+        laneSequence.forEach(lane => {
+            setSignalState(lane, 'yellow');
+            const yellowLight = document.getElementById(`${lane}-yellow`);
+            yellowLight.classList.add('blink');
+            updateTimerDisplay(lane, 0);
+        });
+        
+        document.getElementById('systemStatus').textContent = 'Night Mode';
+        
+    } else {
+        // Deactivate night mode
+        isNightMode = false;
+        nightBtn.classList.remove('active');
+        resetAllSignals();
+        document.getElementById('systemStatus').textContent = 'Stopped';
+    }
+}
+
+/**
+ * Trigger Pedestrian Crossing
+ * Pauses active lane, shows walk signal with countdown
+ */
+function triggerPedestrian() {
+    if (isPedestrianActive || !isRunning) return;
+    
+    isPedestrianActive = true;
+    
+    // Pause current cycle
+    clearInterval(mainInterval);
+    
+    // Set current lane to red
+    setSignalState(activeLane, 'red');
+    
+    // Activate pedestrian signal
+    const pedLight = document.getElementById('ped-light');
+    const pedIcon = document.getElementById('ped-icon');
+    const pedTimer = document.getElementById('ped-timer');
+    
+    pedLight.classList.remove('stop');
+    pedLight.classList.add('walk');
+    pedIcon.textContent = '🚶';
+    pedIcon.classList.add('walk-icon');
+    
+    // Play pedestrian sound
+    playSound('beep');
+    
+    // Countdown timer
+    let pedCountdown = PEDESTRIAN_DURATION;
+    pedTimer.textContent = pedCountdown;
+    
+    const pedInterval = setInterval(() => {
+        pedCountdown--;
+        pedTimer.textContent = pedCountdown;
+        
+        if (pedCountdown <= 0) {
+            clearInterval(pedInterval);
+            
+            // Reset pedestrian signal
+            pedLight.classList.remove('walk');
+            pedLight.classList.add('stop');
+            pedIcon.textContent = '🖐️';
+            pedIcon.classList.remove('walk-icon');
+            pedTimer.textContent = 'WAIT';
+            
+            isPedestrianActive = false;
+            
+            // Resume traffic cycle
+            setTimeout(startCycle, 1000);
+        }
+    }, 1000);
+}
+
+// ================================
+// ANALYTICS & CHARTS
+// ================================
+
+/**
+ * Initialize Chart.js traffic chart
+ */
+function initializeChart() {
+    const ctx = document.getElementById('trafficChart').getContext('2d');
+    
+    window.trafficChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: chartData.labels,
+            datasets: [
+                {
+                    label: 'North',
+                    data: chartData.north,
+                    borderColor: '#00d4ff',
+                    backgroundColor: 'rgba(0, 212, 255, 0.1)',
+                    tension: 0.4
+                },
+                {
+                    label: 'South',
+                    data: chartData.south,
+                    borderColor: '#00ff88',
+                    backgroundColor: 'rgba(0, 255, 136, 0.1)',
+                    tension: 0.4
+                },
+                {
+                    label: 'East',
+                    data: chartData.east,
+                    borderColor: '#ff4757',
+                    backgroundColor: 'rgba(255, 71, 87, 0.1)',
+                    tension: 0.4
+                },
+                {
+                    label: 'West',
+                    data: chartData.west,
+                    borderColor: '#ffcc00',
+                    backgroundColor: 'rgba(255, 204, 0, 0.1)',
+                    tension: 0.4
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    display: true,
+                    position: 'top',
+                    labels: {
+                        color: getComputedStyle(document.documentElement).getPropertyValue('--text-primary'),
+                        font: { size: 10 }
+                    }
+                }
+            },
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary') },
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                },
+                x: {
+                    ticks: { color: getComputedStyle(document.documentElement).getPropertyValue('--text-secondary') },
+                    grid: { color: 'rgba(255, 255, 255, 0.05)' }
+                }
+            }
+        }
+    });
+}
+
+/**
+ * Update chart with new data
+ */
+function updateChart() {
+    const time = new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    
+    // Keep only last 10 data points
+    if (chartData.labels.length >= 10) {
+        chartData.labels.shift();
+        chartData.north.shift();
+        chartData.south.shift();
+        chartData.east.shift();
+        chartData.west.shift();
+    }
+    
+    chartData.labels.push(time);
+    chartData.north.push(trafficData.north.vehicles);
+    chartData.south.push(trafficData.south.vehicles);
+    chartData.east.push(trafficData.east.vehicles);
+    chartData.west.push(trafficData.west.vehicles);
+    
+    window.trafficChart.update();
+}
+
+/**
+ * Update efficiency percentage display
+ */
+function updateEfficiency() {
+    // Calculate efficiency based on cycle completion rate
+    let efficiency = 0;
+    if (totalCycles > 0) {
+        const avgGreen = totalGreenTime / cycleCount;
+        const idealGreen = 25; // Ideal average green time
+        efficiency = Math.min(100, Math.round((idealGreen / avgGreen) * 100));
+    }
+    
+    document.getElementById('efficiency').textContent = efficiency + '%';
+    
+    // Update average green time
+    if (cycleCount > 0) {
+        const avgGreen = Math.round(totalGreenTime / cycleCount);
+        document.getElementById('avgGreen').textContent = avgGreen + 's';
+    }
+}
+
+// ================================
+// SOUND EFFECTS
+// ================================
+
+/**
+ * Play sound effect using Web Audio API
+ * @param {string} type - Sound type ('beep' or 'alert')
+ */
+function playSound(type) {
+    if (!soundEnabled) return;
+    
+    const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+    const oscillator = audioContext.createOscillator();
+    const gainNode = audioContext.createGain();
+    
+    oscillator.connect(gainNode);
+    gainNode.connect(audioContext.destination);
+    
+    if (type === 'beep') {
+        // Short beep for pedestrian crossing
+        oscillator.frequency.value = 800;
+        gainNode.gain.value = 0.3;
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.1);
+        
+    } else if (type === 'alert') {
+        // Alert sound for emergency mode
+        oscillator.frequency.value = 1200;
+        gainNode.gain.value = 0.4;
+        oscillator.start();
+        oscillator.stop(audioContext.currentTime + 0.2);
+        
+        // Second beep
+        setTimeout(() => {
+            const osc2 = audioContext.createOscillator();
+            const gain2 = audioContext.createGain();
+            osc2.connect(gain2);
+            gain2.connect(audioContext.destination);
+            osc2.frequency.value = 1000;
+            gain2.gain.value = 0.4;
+            osc2.start();
+            osc2.stop(audioContext.currentTime + 0.2);
+        }, 200);
+    }
+}
+
+// ================================
+// END OF SCRIPT
+// ================================
+</script>
+
+</body>
+</html>
