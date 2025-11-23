@@ -101,11 +101,13 @@ header{display:flex;justify-content:space-between;align-items:center;padding:15p
 .prediction-box.show{display:block}
 .prediction-box h4{font-size:0.8rem;color:var(--purple);margin-bottom:8px;display:flex;align-items:center;gap:6px}
 .prediction-text{font-size:0.85rem;color:var(--text-primary)}
-.about-section{background:var(--bg-card);border-radius:16px;padding:20px;border:1px solid var(--border);margin-top:20px}
-.about-section h3{font-size:1rem;color:var(--accent);margin-bottom:12px;display:flex;align-items:center;gap:8px}
-.about-section p{font-size:0.8rem;color:var(--text-secondary);line-height:1.7;margin-bottom:10px}
-.features-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-top:15px}
-.feature-item{background:var(--bg-secondary);padding:10px 12px;border-radius:8px;font-size:0.75rem;color:var(--text-primary);display:flex;align-items:center;gap:8px;border:1px solid var(--border)}
+.about-section{background:linear-gradient(145deg,var(--bg-card),var(--bg-secondary));border-radius:16px;padding:25px;border:2px solid var(--border);margin-top:20px;position:relative;overflow:hidden}
+.about-section::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,var(--accent),var(--green),transparent)}
+.about-section h3{font-size:1.1rem;color:var(--accent);margin-bottom:15px;display:flex;align-items:center;gap:10px;font-weight:700}
+.about-section p{font-size:0.85rem;color:var(--text-primary);line-height:1.8;margin-bottom:12px;opacity:0.9}
+.features-list{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;margin-top:20px}
+.feature-item{background:linear-gradient(135deg,var(--bg-primary),var(--bg-secondary));padding:12px 15px;border-radius:10px;font-size:0.8rem;color:var(--text-primary);display:flex;align-items:center;gap:10px;border:1px solid var(--border);transition:all 0.3s;cursor:default}
+.feature-item:hover{border-color:var(--accent);transform:translateY(-2px);box-shadow:0 5px 15px rgba(0,212,255,0.2)}
 .status-bar{background:var(--bg-card);border-radius:12px;padding:12px 20px;border:1px solid var(--border);margin-top:20px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:15px}
 .status-item{display:flex;align-items:center;gap:8px}
 .status-dot{width:8px;height:8px;border-radius:50%;background:var(--red)}
@@ -338,7 +340,7 @@ footer .copyright{color:var(--text-secondary);font-size:0.65rem;margin-top:20px;
 <div class="developer-info">
 <div class="info-card">
 <div class="info-label">Developed By</div>
-<div class="developer-name">Mohammed Raheem</div>
+<div class="developer-name">Alpha Developer</div>
 </div>
 
 <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap;">
@@ -362,7 +364,7 @@ footer .copyright{color:var(--text-secondary);font-size:0.65rem;margin-top:20px;
 </div>
 
 <div class="copyright">
-© 2024 Smart Traffic System | Built with ❤️ by Sigma Developer
+© 2024 Smart Traffic System | Built with ❤️ by Alpha Developer
 </div>
 </div>
 </footer>
